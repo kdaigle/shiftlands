@@ -44,3 +44,6 @@ Coordinator: download the runtime ZIP via Raw / Download raw file on this public
 Tracked game sources and changed text files: secret scanner PASS, no secrets detected. git diff --check PASS.
 CodeQL tool: "No code changes detected for languages that CodeQL can analyze, so no analysis was performed." This is a tooling limitation, not a clean formal audit result.
 Later delivery commits change only archive/provenance/evidence, not runtime/build/README/license inputs from the clean source SHA above.
+Public delivery independently checked after push of commit 3b38b245dcb86c4c3277f0aca7b850ce0d918798: GitHub Contents API lists only runtime ZIP and provenance under artifacts; raw public branch download returned HTTP200, 45677 bytes, SHA-256 8aefc9aa5632ca68ece1a580d0260378382b541f47f80a6eda3fd0f090ffbd7d.
+Immutable download: https://raw.githubusercontent.com/kdaigle/shiftlands/3b38b245dcb86c4c3277f0aca7b850ce0d918798/artifacts/shiftlands-runtime.zip
+Final committed scope reviewed: .gitignore, README.md, scripts/package.mjs, scripts/package-smoke.mjs, evidence/verification.txt, runtime ZIP and provenance only. No game-source, dependency, workflow or database files changed. Working tree clean after artifact commit; final git diff --check PASS.
