@@ -27,3 +27,16 @@ Independent manual UI check: joined production backend on 127.0.0.1:3105 with an
 git diff --check PASS; changed text/source secret scans PASS.
 Not measured: public-network hosting, load beyond two browser players, other operating systems/browsers/devices. Lookout, King Tide, repairs, salvage and offline pause additionally verified by authoritative tests; browser journey covers the first-surging-tide loop, reconnect and restart.
 Design choices: one shared tutorial wall with personal gathering and real-hold milestones; wood/stone durability 3/5 and one-material full repair; an exhausted wall finishes its current hold before breaking; higher tides overtop and destroy weaker walls; King Tide requires high ground, banking and recovery rather than an unspecified stronger wall. Default gathering countdown is 90s plus 8s surge and 5s recession. Lookout previews future tile risk against the current wall layout.
+
+Final runtime delivery:
+Clean committed source SHA: 491f621f7c22c98e839ff794cc7419986cd95b50 (git status --porcelain empty before packaging).
+RELEASE_SHA=491f621f7c22c98e839ff794cc7419986cd95b50 npm run package PASS.
+TMPDIR="$PWD/.work/browser-tmp" PLAYWRIGHT_BROWSERS_PATH="$PWD/.work/browsers" npm run test:package PASS: both ZIPs extracted, bundled backend launched without npm install, external DB, genuine cross-origin static-client join, 0 browser errors, licenses/notices and archive allowlist checked.
+TZ=Pacific/Honolulu RELEASE_SHA=491f621f7c22c98e839ff794cc7419986cd95b50 npm run package PASS: runtime and static ZIPs byte-identical to first build.
+Runtime: artifacts/shiftlands-runtime.zip, 52194 bytes.
+SHA-256: 63dde0da59612987c870d5a8baede70479eb1ce06c9dc95c802fd3f9cd5c4ccd.
+Provenance: artifacts/shiftlands-runtime.provenance.json. Node v22.23.4, npm 10.9.9, Info-ZIP 3.0, Linux x86_64.
+REVISION.json: revision=491f621f7c22c98e839ff794cc7419986cd95b50, sourceDirty=false, sourceDate=2026-11-04T17:27:56.000Z.
+Independent /tmp extraction: ran extracted server.mjs with HOST=127.0.0.1 PORT=3106 and an external throwaway SQLite DB, no dependency installation or build. GET /health HTTP200 {"ok":true,"game":"Shiftlands","players":0}; GET / HTTP200 with exact Rising Tide goal text. Process stopped and throwaway directories removed.
+Archive contents: ASSETS.txt, LICENSE, README.md, REVISION.json, START.txt, THIRD_PARTY_NOTICES.txt, public/game.js, public/index.html, public/style.css, server.mjs. No database, node_modules, browser profile or cache bundled.
+Only runtime ZIP and provenance are tracked under artifacts; static ZIP and staging outputs stay ignored. This delivery commit changes only archive/provenance/evidence, not runtime inputs from the clean source SHA.

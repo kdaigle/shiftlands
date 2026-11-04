@@ -1,9 +1,9 @@
 {
   "artifact": "shiftlands-runtime.zip",
-  "sha256": "8aefc9aa5632ca68ece1a580d0260378382b541f47f80a6eda3fd0f090ffbd7d",
-  "bytes": 45677,
+  "sha256": "63dde0da59612987c870d5a8baede70479eb1ce06c9dc95c802fd3f9cd5c4ccd",
+  "bytes": 52194,
   "sourceRepository": "https://github.com/kdaigle/shiftlands",
-  "sourceCommit": "aa2ff8425a7826ae801003a716164792c80fd382",
+  "sourceCommit": "491f621f7c22c98e839ff794cc7419986cd95b50",
   "sourceTreeClean": true,
   "toolchain": {
     "node": "v22.23.4",
@@ -11,15 +11,15 @@
     "zip": "Info-ZIP 3.0",
     "platform": "Linux x86_64"
   },
-  "build": "npm ci && RELEASE_SHA=aa2ff8425a7826ae801003a716164792c80fd382 npm run package",
+  "build": "npm ci && RELEASE_SHA=491f621f7c22c98e839ff794cc7419986cd95b50 npm run package",
   "reproducibility": "Two builds from the clean source commit produced identical ZIP bytes, including with TZ=Pacific/Honolulu.",
   "validation": [
-    "npm run verify: typecheck/build, 8 invariant/protocol tests, 1 real two-browser journey",
+    "npm run verify: typecheck/build, 22 invariant/protocol tests, 1 real two-browser Rising Tide journey",
     "npm run test:package: extracted runtime and cross-origin static browser join",
-    "Separate /tmp extraction: default 127.0.0.1:3000, GET /health 200, external throwaway DB, no build/install"
+    "Separate /tmp extraction: 127.0.0.1:3106, GET /health and goal HTML 200, external throwaway DB, no build/install"
   ],
   "licenses": "LICENSE and ASSETS.txt cover original code/artwork; THIRD_PARTY_NOTICES.txt includes bundled software notices. Node is supplied separately.",
   "play": "From extracted directory: DB_PATH=/absolute/external/path/world.sqlite node server.mjs",
-  "defaults": { "HOST": "127.0.0.1", "PORT": 3000 },
+  "defaults": { "HOST": "127.0.0.1", "PORT": 3000, "TIDE_PERIOD_MS": 90000, "TIDE_WARNING_MS": 15000, "TIDE_SURGE_MS": 8000, "TIDE_RECEDE_MS": 5000 },
   "hosting": "No publicly hosted server or deployment is provided."
 }
