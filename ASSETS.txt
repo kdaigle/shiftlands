@@ -1,0 +1,24 @@
+Shiftlands asset provenance
+==========================
+
+The game uses original lightweight geometric/vector artwork drawn by its
+client renderer: islands, water, paths, trees/resources, camp structures,
+and player characters, plus an original inline SVG favicon. No downloaded
+image, font, music, or sound assets are included. System fonts remain
+provided by the player's operating system.
+
+These original artwork assets are MIT-licensed by the repository owner,
+alongside the code (see LICENSE). This is an explicit license for these
+original assets, not a license grant over third-party material.
+
+AI assistance: GitHub Copilot cloud agents assisted with game design,
+implementation, geometric artwork, tests, and documentation. The user
+selected the persistent cooperative shifting-islands direction.
+
+Third-party software dependencies retain their own licenses. They are
+not artwork and are not relicensed by this repository's MIT LICENSE.
+Packaged runtime notices accompany the distribution.
+
+Future additions must list their actual creator/source, license, and any
+required attribution here. Do not redistribute paid or proprietary assets
+without explicit redistribution rights.
