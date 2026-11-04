@@ -167,9 +167,9 @@ function renderHud() {
   const texts = [`Gather 3 wood from a grove. (${Math.min(3, objective.gathered)}/3)`, 'Build a wall at the glowing marker before the surge.', 'Watch your wall hold back the sea.'];
   const done = [objective.gathered >= 3, objective.built, objective.held];
   for (const [i, li] of [...el('objectives').children].entries()) { li.textContent = `${done[i] ? '✓ ' : ''}${texts[i]}`; li.classList.toggle('done', done[i]); }
-  el('what-next').textContent = objective.held ? 'What next: protect more land, repair walls, or contribute to the Lookout.' : 'The glowing wall marker protects the small grove to the west.';
+  el('what-next').textContent = objective.held ? 'What next: protect more land, repair walls, or contribute to the Lookout.' : objective.built ? 'The marked wall is shared. Gather your wood, repair it if worn, and watch a surge.' : 'The glowing wall marker protects the small grove to the west.';
   if (previousSweeps !== undefined && p.swept > previousSweeps) notice('SWEPT TO THE HAVEN! Your carried materials washed away. Banked materials and shared walls are safe.');
-  else if (previousShifts !== undefined && w.shifts > previousShifts) notice(`SURGE! ${w.lastFlooded.filter(id => TILES[id].elevation > 0).length} land tiles flooded; exposed nodes washed away. ${objective.held ? 'Your wall held back the sea!' : 'Repair walls and protect more land.'}`);
+  else if (previousShifts !== undefined && w.shifts > previousShifts) notice(`SURGE! ${w.lastFlooded.filter(id => TILES[id].elevation > 0).length} land tiles flooded; exposed nodes washed away. Inspect and repair your defenses.`);
   if (p.notice && p.notice !== previousNotice) notice(p.notice);
   previousNotice = p.notice;
   previousSweeps = p.swept; previousShifts = w.shifts;

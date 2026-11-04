@@ -61,7 +61,7 @@ async function interact(page: Page, count = 1) {
   for (let i = 0; i < count; i++) {
     await page.waitForTimeout(420);
     await page.keyboard.press('e');
-    await page.waitForTimeout(150);
+    await page.waitForTimeout(i === count - 1 ? 420 : 150);
   }
 }
 
@@ -137,8 +137,8 @@ test('Rising Tide: two real travelers gather, defend, get swept, reconnect and s
 
     await fern.locator('canvas').focus();
     await fern.keyboard.press('b');
-    await expect(fern.locator('#notice')).toContainText(/wood|need|cost/i);
-    record('Real B with an empty pack produces visible invalid-action feedback.');
+    await expect(fern.locator('#notice')).toContainText(/wood|need|cost|low ground|grove|haven/i);
+    record('Real B at the haven with an empty pack produces visible invalid-action feedback.');
     const initial = await snapshot(fern);
     const grove = initial.nodes.find(node => tileAt(node) === STARTER_FIELD && node.resource === 'wood')!;
     expect(grove).toBeTruthy();

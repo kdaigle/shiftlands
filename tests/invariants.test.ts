@@ -208,11 +208,61 @@ test('only building and holding the marked starter wall completes the guided obj
     assert.equal(game.player(p.id).built,1);
   }finally{game.close();f.cleanup();}
 });
+test('starter construction is shared with current and late players; a real hold credits everyone who gathered three',()=>{
+  const f=fixture(),game=f.game;
+  try{
+    const owner=game.join('Builder').player,helper=game.join('Helper').player,passive=game.join('Newcomer').player,field=tileCenter(STARTER_WALL+1);
+    for(const p of [owner,helper]) {
+      position(game,p.id,field.x,field.y);
+      for(let i=0;i<3;i++)game.gather(p.id,'grove');
+    }
+    game.build(owner.id,STARTER_WALL,'wood');
+    for(const p of [owner,helper,passive]) assert.equal(game.player(p.id).objective.built,true);
+    assert.equal(game.player(owner.id).built,1);assert.equal(game.player(helper.id).built,0);
+    const late=game.join('Late Join').player;
+    assert.equal(late.objective.built,true);assert.equal(late.objective.held,false);
+    position(game,late.id,field.x,field.y);
+    for(let i=0;i<3;i++)game.gather(late.id,'grove');
+    assert.throws(()=>game.build(late.id,STARTER_WALL,'wood'),/already built together/);
+    assert.equal(game.player(late.id).inventory.wood,3);
+    f.advance(SHIFT_MS);game.shift();
+    for(const p of [owner,helper,late]) assert.equal(game.player(p.id).objective.held,true);
+    assert.equal(game.player(passive.id).objective.held,false);
+    const after=game.join('After Surge').player;
+    assert.equal(after.objective.built,true);assert.equal(after.objective.held,false);
+    position(game,after.id,field.x,field.y);
+    for(let i=0;i<3;i++)game.gather(after.id,'grove');
+    assert.equal(game.player(after.id).objective.held,false);
+    game.db.prepare('UPDATE walls SET hp=0 WHERE tile=?').run(STARTER_WALL);
+    assert.equal(game.join('After Break').player.objective.built,true);
+  }finally{game.close();f.cleanup();}
+});
+test('every surge replaces stale hold notices even when the owner remains safe at the haven',()=>{
+  const f=fixture(),game=f.game;
+  try{
+    const p=game.join('Safe Builder').player,field=tileCenter(STARTER_WALL+1);
+    position(game,p.id,field.x,field.y);
+    for(let i=0;i<3;i++)game.gather(p.id,'grove');
+    game.build(p.id,STARTER_WALL,'wood');
+    position(game,p.id,CAMP.x,CAMP.y);
+    f.advance(SHIFT_MS);game.shift();
+    assert.match(game.player(p.id).notice,/held back tide 1/);
+    assert.equal(game.player(p.id).objective.held,true);
+    f.advance(8000);game.shift();f.advance(5000);game.shift();
+    f.advance(SHIFT_MS);game.shift();
+    assert.match(game.player(p.id).notice,/Tide 2 surged at height 4/);
+    assert.doesNotMatch(game.player(p.id).notice,/held back tide 1/);
+    assert.equal(game.player(p.id).objective.held,true);
+    assert.equal(game.player(p.id).swept,0);
+    assert.equal(game.world.walls[0].hp,0);
+  }finally{game.close();f.cleanup();}
+});
 test('stone walls wear once on each held surge and their last hit protects land until recession',()=>{
   const f=fixture(),game=f.game;
   try{
     const p=game.join('Mason').player,field=tileCenter(STARTER_WALL+1);
     position(game,p.id,field.x,field.y);
+    for(let i=0;i<3;i++)game.gather(p.id,'grove');
     game.db.prepare('UPDATE players SET wood=1,stone=3 WHERE id=?').run(p.id);
     game.build(p.id,STARTER_WALL,'stone');
     for(let tide=1;tide<=5;tide++){
@@ -227,6 +277,24 @@ test('stone walls wear once on each held surge and their last hit protects land 
     assert.ok(game.world.forecast.includes(STARTER_WALL+1));
     f.advance(SHIFT_MS);game.shift();
     assert.equal(game.player(p.id).swept,1);assert.equal(game.player(p.id).objective.held,true);
+  }finally{game.close();f.cleanup();}
+});
+test('a redundant sea-exposed front wall wears while its sheltered backup does not; objective still needs marginal pocket protection',()=>{
+  const f=fixture(),game=f.game;
+  try{
+    const p=game.join('Layered Defenses').player,field=tileCenter(STARTER_WALL+1),marker=tileCenter(STARTER_WALL);
+    position(game,p.id,field.x,field.y);
+    for(let i=0;i<6;i++)game.gather(p.id,'grove');
+    game.build(p.id,STARTER_WALL,'wood');
+    position(game,p.id,marker.x,marker.y);game.build(p.id,STARTER_WALL-1,'wood');
+    const prediction=game.world.forecast;
+    assert.ok(!prediction.includes(STARTER_WALL+1));
+    f.advance(SHIFT_MS);game.shift();
+    assert.deepEqual(game.world.flooded,prediction);
+    assert.equal(game.world.walls.find(w=>w.tile===STARTER_WALL-1)!.hp,2);
+    assert.equal(game.world.walls.find(w=>w.tile===STARTER_WALL)!.hp,3);
+    assert.equal(game.player(p.id).objective.held,false);
+    assert.equal(game.player(p.id).swept,0);
   }finally{game.close();f.cleanup();}
 });
 test('legacy migration preserves hashed identity and materials without retaining old quests',()=>{
@@ -338,6 +406,12 @@ function awaitMessage(ws:WebSocket,predicate:(data:Record<string,unknown>)=>bool
     ws.on('message',handle);
   });
 }
+function awaitClose(ws: WebSocket): Promise<number> {
+  return new Promise((resolve,reject)=>{
+    const timer=setTimeout(()=>reject(Error('WS close timeout')),3000);
+    ws.once('close',code=>{clearTimeout(timer);resolve(code);});
+  });
+}
 async function availablePort(): Promise<number> {
   const listener=createServer();
   await new Promise<void>((resolve,reject)=>{listener.once('error',reject);listener.listen(0,'127.0.0.1',resolve);});
@@ -439,7 +513,7 @@ test('real protocol rejects stolen IDs, duplicate sessions/sequences, teleport/s
       const wallResults=await Promise.all(wallRace);
       assert.equal(wallResults.filter(d=>d.type==='notice').length,1);
       assert.match(String(wallResults.find(d=>d.type==='notice')!.message),/wall built/);
-      assert.match(String(wallResults.find(d=>d.type==='error')!.message),/already stands/);
+      assert.match(String(wallResults.find(d=>d.type==='error')!.message),/already built together/);
       assert.equal(fixtureDb.world.walls.length,1);
       assert.equal(fixtureDb.player(a.id).inventory.wood+fixtureDb.player(b.id).inventory.wood,3);
       for(const client of [ws,second.ws]){
@@ -447,11 +521,11 @@ test('real protocol rejects stolen IDs, duplicate sessions/sequences, teleport/s
         assert.equal((remote.world as {lookout:boolean}).lookout,true);
       }
     } finally {fixtureDb.close();}
-    const close=new Promise<number>(r=>ws.once('close',code=>r(code)));
-    for(let i=0;i<45;i++)ws.send(JSON.stringify({type:'input',seq:1000+i,dx:0,dy:0}));
+    const close=awaitClose(ws);
+    for(let i=0;i<80;i++)ws.send(JSON.stringify({type:'input',seq:1000+i,dx:0,dy:0}));
     assert.equal(await close,1008);
     const huge=await socket(b.token+'x',url);connections.push(huge.ws);
-    const payloadClose=new Promise<number>(r=>huge.ws.once('close',code=>r(code)));
+    const payloadClose=awaitClose(huge.ws);
     huge.ws.send('x'.repeat(2048));assert.equal(await payloadClose,1009);
     assert.equal((await fetch(`${base}/health`)).status,200);
     assert.equal((await fetch(`${base}/favicon.ico`)).status,204);

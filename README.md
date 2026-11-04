@@ -46,6 +46,10 @@ Press E three times to gather 3 wood. From the grove, face left and press B
 to build on the glowing marker. Stay on the grove and watch the wall block
 the first surge. The three-step tracker records this permanently.
 Then protect more land, repair battered walls, or work on the shared Lookout.
+The marked construction is cooperative: if someone already built it, that
+step is credited to newcomers too. Gather your own 3 wood, help repair it,
+and watch a later successful defense. Builder rankings
+still credit only the traveler who actually placed each wall.
 
 ### The tide
 
@@ -57,8 +61,10 @@ strong enough for that surge. Flooded tiles cannot be crossed.
 
 Wood walls hold up to height **3**; stone walls hold up to **5**. Successful
 defenses wear down durability, shown on each wall. Repair before it breaks;
-broken walls do not block water. A higher surge overtops a weaker wall.
-Surge heights repeat predictably, with **every eighth a height-6 King Tide**.
+broken walls do not block the next surge. A wall's last durability point
+finishes holding the current surge before breaking. A higher surge overtops
+and destroys a weaker wall.
+Surge heights repeat **3, 4, 3, 5, 4, 5, 3, 6**, with **every eighth a height-6 King Tide**.
 Neither wall type alone can stop a King Tide: use elevation-6 ridges as
 natural barriers, preserve high fields, and bank supplies to rebuild afterward.
 The elevation-7 haven and its recovery resources always stay safe.

@@ -2,7 +2,7 @@ Shiftlands asset provenance
 ==========================
 
 The game uses original lightweight geometric/vector artwork drawn by its
-client renderer: islands, water, paths, trees/resources, camp structures,
+client renderer: elevation tiles, water, groves/quarries, seawalls, haven structures,
 and player characters, plus an original inline SVG favicon. No downloaded
 image, font, music, or sound assets are included. System fonts remain
 provided by the player's operating system.

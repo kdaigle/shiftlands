@@ -45,6 +45,7 @@ export class Game {
         this.db.prepare('UPDATE players SET x=?,y=?,notice=?').run(CAMP.x, CAMP.y, 'Welcome to Rising Tide. Your identity and materials are safe.');
       }
       for (const node of NODE_LAYOUT) this.db.prepare('INSERT OR IGNORE INTO nodes VALUES(?,?)').run(node.id, node.capacity);
+      if (this.db.prepare('SELECT tile FROM walls WHERE tile=?').get(STARTER_WALL)) this.db.prepare('UPDATE players SET objectiveBuilt=1').run();
     });
     this.lastTick = this.clock();
   }
@@ -73,7 +74,8 @@ export class Game {
     if (token !== undefined) return { token: token as string, player: this.player(this.authenticate(token)) };
     if (typeof name !== 'string' || !/^[\p{L}\p{N} _-]{1,18}$/u.test(name.trim())) throw new Rejection('Use 1–18 letters, numbers, spaces, _ or -.');
     const bearer = randomBytes(32).toString('base64url'), id = randomBytes(12).toString('hex');
-    this.db.prepare('INSERT INTO players(id,token,name,x,y) VALUES(?,?,?,?,?)').run(id, hash(bearer), name.trim(), CAMP.x, CAMP.y);
+    const starterBuilt = !!this.db.prepare('SELECT tile FROM walls WHERE tile=?').get(STARTER_WALL);
+    this.db.prepare('INSERT INTO players(id,token,name,x,y,objectiveBuilt) VALUES(?,?,?,?,?,?)').run(id, hash(bearer), name.trim(), CAMP.x, CAMP.y, starterBuilt ? 1 : 0);
     return { token: bearer, player: this.player(id) };
   }
   authenticate(token: unknown) {
@@ -131,10 +133,11 @@ export class Game {
       const standing = tileAt(p.x, p.y)!;
       if (Math.abs(standing.x - TILES[tile].x) + Math.abs(standing.y - TILES[tile].y) !== 1) throw new Rejection('Build on an adjacent tile, not underfoot or diagonally.');
       const old = this.world.walls.find(w => w.tile === tile);
-      if (old && old.hp > 0) throw new Rejection('A wall already stands there.');
+      if (old && old.hp > 0) throw new Rejection(tile === STARTER_WALL ? 'The marked wall is already built together. Repair it when worn, then help it hold!' : 'A wall already stands there.');
       const wood = kind === 'wood' ? 3 : 1, stone = kind === 'stone' ? 3 : 0;
       if (p.inventory.wood < wood || p.inventory.stone < stone) throw new Rejection(kind === 'wood' ? 'Need 3 wood.' : 'Need 3 stone and 1 wood.');
       this.db.prepare('UPDATE players SET wood=wood-?,stone=stone-?,built=built+1,objectiveBuilt=MAX(objectiveBuilt,?) WHERE id=?').run(wood, stone, tile === STARTER_WALL ? 1 : 0, id);
+      if (tile === STARTER_WALL) this.db.prepare('UPDATE players SET objectiveBuilt=1').run();
       this.db.prepare('INSERT INTO walls VALUES(?,?,?,?) ON CONFLICT(tile) DO UPDATE SET kind=excluded.kind,hp=excluded.hp,owner=excluded.owner').run(tile, kind, kind === 'wood' ? 3 : 5, id);
       return `${kind === 'wood' ? 'Wood' : 'Stone'} wall built. Holds tides up to height ${kind === 'wood' ? 3 : 5}.`;
     });
@@ -163,15 +166,19 @@ export class Game {
   }
   private surge(state: State) {
     const walls = this.world.walls, height = surgeHeight(state.tide), wet = flood(height, walls), wetSet = new Set(wet);
+    this.db.prepare('UPDATE players SET notice=?').run(`Tide ${state.tide} surged at height ${height}. Exposed walls and nodes may be lost; inspect your defenses.`);
     for (const wall of walls.filter(w => w.hp > 0)) {
       const without = flood(height, walls.filter(w => w.tile !== wall.tile));
       const held = neighbors(wall.tile).some(id => !wetSet.has(id) && without.includes(id) && TILES[id].elevation > 0 && TILES[id].elevation < height);
+      const exposed = TILES[wall.tile].elevation < height && (wall.kind === 'wood' ? 3 : 5) >= height && neighbors(wall.tile).some(id => wetSet.has(id));
       if (held) {
         const pocket = STARTER_WALL + 1;
         const objectiveHeld = wall.tile === STARTER_WALL && !wetSet.has(pocket) && without.includes(pocket);
-        this.db.prepare('UPDATE players SET held=MAX(held,?),notice=? WHERE id=?').run(objectiveHeld ? 1 : 0, `Your wall held back tide ${state.tide}!`, wall.owner);
-        this.db.prepare('UPDATE walls SET hp=MAX(0,hp-1) WHERE tile=?').run(wall.tile);
-      } else if (wetSet.has(wall.tile)) this.db.prepare('UPDATE walls SET hp=0 WHERE tile=?').run(wall.tile);
+        this.db.prepare('UPDATE players SET notice=? WHERE id=?').run(`Your wall held back tide ${state.tide}!`, wall.owner);
+        if (objectiveHeld) this.db.prepare('UPDATE players SET held=1,notice=? WHERE gathered>=3').run(`Together, your marked wall held back tide ${state.tide}!`);
+      }
+      if (held || exposed) this.db.prepare('UPDATE walls SET hp=MAX(0,hp-1) WHERE tile=?').run(wall.tile);
+      else if (wetSet.has(wall.tile)) this.db.prepare('UPDATE walls SET hp=0 WHERE tile=?').run(wall.tile);
     }
     for (const node of NODE_LAYOUT) if (wetSet.has(node.tile)) this.db.prepare('UPDATE nodes SET remaining=0 WHERE id=?').run(node.id);
     for (const tile of wet) this.db.prepare('DELETE FROM salvage WHERE tile=?').run(tile);
