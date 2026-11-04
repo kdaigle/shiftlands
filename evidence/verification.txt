@@ -27,5 +27,20 @@ Two builds with different parent TZ settings produced identical runtime AND stat
 Regression checks assert source timestamp/Node marker and exact runtime file allowlist (no dependencies, test files, database or user content).
 Targeted internal review covered full src/server.ts, world.ts, client.ts, shared.ts and existing adversarial tests: random/hash-only guest credentials, public-ID rejection, duplicate sessions, heartbeat/reconnect, authoritative movement/range/schema/sequence validation, transactional gathering/upgrades and rollback, SQL/static allowlists, textContent/canvas output. No concrete exploitable issue identified; no gameplay code changed. This is not a formal external security audit.
 GitHub PR #1 has no review comments. Actions API reports the prior cloud-agent run 41755604182 cancelled, with no failed jobs. No project CI workflow exists or was added.
-Delivery ZIP will be built only after committing these source/build/documentation inputs. The adjacent artifacts/shiftlands-runtime.provenance.json will record the exact clean source SHA and final archive checksum; final delivery checks follow below.
+Delivery ZIP was built after committing these source/build/documentation inputs; exact delivery checks follow below.
 No live public backend, deployment, release, or itch.io submission was created. Sandbox testing cannot independently establish public-network reachability, coordinator OS/browser compatibility, larger-scale load, or current jam-site rules.
+
+Final artifact delivery:
+Clean source SHA: aa2ff8425a7826ae801003a716164792c80fd382 (git status --porcelain empty before and after exact-SHA builds).
+Runtime path: artifacts/shiftlands-runtime.zip
+SHA-256: 8aefc9aa5632ca68ece1a580d0260378382b541f47f80a6eda3fd0f090ffbd7d
+Size: 45677 bytes. Adjacent provenance: artifacts/shiftlands-runtime.provenance.json.
+RELEASE_SHA=aa2ff8425a7826ae801003a716164792c80fd382 npm run package PASS, npm run test:package PASS; rebuilt with TZ=Pacific/Honolulu, both ZIP checksums identical. Node v22.23.4, npm 10.9.9, Info-ZIP 3.0, Linux x86_64.
+REVISION.json: revision=aa2ff8425a7826ae801003a716164792c80fd382, sourceDirty=false, sourceDate=2026-11-04T05:02:09.000Z.
+Archive contents: ASSETS.txt, LICENSE, README.md, REVISION.json, START.txt, THIRD_PARTY_NOTICES.txt, public/game.js, public/index.html, public/style.css, server.mjs. Only the runtime ZIP is committed; static ZIP and staging outputs stay ignored.
+Independent extraction outside checkout: /tmp/shiftlands-delivery-jJkT1E/runtime; DB /tmp/shiftlands-delivery-jJkT1E/save/world.sqlite. HOST and PORT unset: listener confirmed 127.0.0.1:3000, GET /health HTTP200 {"ok":true,"game":"Shiftlands","players":0}, client HTML HTTP200. No npm install/build, dependency directory or checkout lookup. Process stopped and throwaway directory removed afterward.
+One preliminary retry hit EADDRINUSE from this task's own earlier temporary launch; identified and stopped that process, then repeated the default-port check successfully. No infrastructure was created.
+Coordinator: download the runtime ZIP via Raw / Download raw file on this public PR branch; compare SHA-256 with the adjacent provenance; unzip into a new directory; use Node22.13+ and run DB_PATH=/absolute/writable/path/outside-the-runtime/world.sqlite node server.mjs. Open http://127.0.0.1:3000 and use separate browser profiles for two players. HOST/PORT environment variables override the local defaults; preserve external DB_PATH between starts.
+Tracked game sources and changed text files: secret scanner PASS, no secrets detected. git diff --check PASS.
+CodeQL tool: "No code changes detected for languages that CodeQL can analyze, so no analysis was performed." This is a tooling limitation, not a clean formal audit result.
+Later delivery commits change only archive/provenance/evidence, not runtime/build/README/license inputs from the clean source SHA above.
