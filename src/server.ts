@@ -96,13 +96,22 @@ wss.on('connection', ws => {
       if (data.type === 'input') {
         if (!exact(data, ['type', 'seq', 'dx', 'dy']) || typeof data.dx !== 'number' || typeof data.dy !== 'number' || !Number.isFinite(data.dx) || !Number.isFinite(data.dy) || Math.abs(data.dx) > 1 || Math.abs(data.dy) > 1) throw new Rejection('Invalid movement.');
         session.seq = data.seq; session.dx = data.dx; session.dy = data.dy; session.inputAt = now;
-      } else if (data.type === 'gather' || data.type === 'contribute') {
-        if (!exact(data, data.type === 'gather' ? ['type', 'seq', 'node'] : ['type', 'seq', 'resource']) || typeof (data.type === 'gather' ? data.node : data.resource) !== 'string') throw new Rejection('Invalid action.');
+      } else if (['gather', 'contribute', 'build', 'repair', 'salvage'].includes(String(data.type))) {
+        const keys = data.type === 'gather' ? ['type', 'seq', 'node'] : data.type === 'contribute' ? ['type', 'seq', 'resource'] : data.type === 'build' ? ['type', 'seq', 'tile', 'kind'] : ['type', 'seq', 'tile'];
+        if (!exact(data, keys)
+          || (data.type === 'gather' && typeof data.node !== 'string')
+          || (data.type === 'contribute' && data.resource !== 'wood' && data.resource !== 'stone')
+          || (['build', 'repair', 'salvage'].includes(String(data.type)) && (typeof data.tile !== 'number' || !Number.isInteger(data.tile) || data.tile < 0 || data.tile >= 384))
+          || (data.type === 'build' && data.kind !== 'wood' && data.kind !== 'stone')) throw new Rejection('Invalid action.');
         session.seq = data.seq;
         if (now - session.actionAt < 350) throw new Rejection('Take a breath before the next action.');
         session.actionAt = now;
         actionTimes.set(id, now);
-        const message = data.type === 'gather' ? game.gather(id, data.node as string) : game.contribute(id, data.resource as Resource);
+        const message = data.type === 'gather' ? game.gather(id, data.node as string)
+          : data.type === 'contribute' ? game.contribute(id, data.resource as Resource)
+          : data.type === 'build' ? game.build(id, data.tile as number, data.kind as Resource)
+          : data.type === 'repair' ? game.repair(id, data.tile as number)
+          : game.salvage(id, data.tile as number);
         send(ws, { type: 'notice', message });
       } else throw new Rejection('Unknown command.');
     } catch (e) {
@@ -114,7 +123,10 @@ wss.on('connection', ws => {
 });
 const heartbeat = setInterval(() => {
   for (const ws of wss.clients) {
-    if (awaitingPong.has(ws)) ws.terminate();
+    if (awaitingPong.has(ws)) {
+      for (const [id, session] of active) if (session.socket === ws) active.delete(id);
+      ws.terminate();
+    }
     else if (ws.readyState === WebSocket.OPEN) { awaitingPong.add(ws); ws.ping(); }
   }
 }, HEARTBEAT_MS);
@@ -122,10 +134,13 @@ let lastTick = Date.now();
 const timer = setInterval(() => {
   const now = Date.now(), dt = Math.min(0.1, (now - lastTick) / 1000);
   lastTick = now;
-  const shifted = game.shift();
+  const shifted = game.shift(active.size > 0);
   for (const [id, session] of active) {
     if (now - session.inputAt < 300) game.move(id, session.dx, session.dy, dt);
-    if (shifted) send(session.socket, { type: 'notice', message: 'The islands shifted! Northern route changed; loose travelers returned safely to camp. Your pack is safe.' });
+    if (shifted) {
+      const world = game.world, p = game.player(id);
+      send(session.socket, { type: 'notice', message: world.stage === 'warning' ? `Tide ${world.tide} warning: height ${world.height}. Reach high ground or build a wall!` : world.stage === 'surge' ? (p.notice || `Tide ${world.tide} is surging. Stay on dry land!`) : world.stage === 'recede' ? 'Water recedes. Salvage driftwood; only dry groves regrow.' : `Tide ${world.tide} approaches. Repair and prepare.` });
+    }
   }
   const players = [...active.keys()].map(id => game.player(id));
   for (const [id, session] of active) send(session.socket, { type: 'snapshot', you: id, players, nodes: game.nodes, world: game.world, now });

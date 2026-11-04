@@ -1,13 +1,13 @@
 # Shiftlands
 
-A small cooperative settlement on islands whose connections **shift**. Gather
-materials with friends, build a permanent camp upgrade, and explore the route
-it unlocks. Progress survives leaving the game and restarting the server.
-There is no combat, chat, trading, or offline punishment.
+A small cooperative **Rising Tide** survival-and-building game, alone or with
+friends. **The sea rises with every tide. Gather from the outer islands before
+they flood, then build seawalls so the haven and its land stay dry.**
 
-**Status:** playable two-player prototype, browser-verified through gathering,
-shared upgrades, a warned route-changing shift, reconnect, and a real
-same-database backend restart. It is not publicly hosted.
+Each surge is the **SHIFT**: sea-connected low land becomes water. Walls,
+materials, flood damage, and personal progress survive reconnect and server
+restart. There is no final quest that ends the world, and tides pause when
+nobody is connected. **No public multiplayer server is hosted.**
 
 ## Play
 
@@ -30,15 +30,66 @@ browser contexts—not two tabs in the same profile. To play across a LAN, bind
 exposes the game on your network; use only a trusted network for plain HTTP.
 
 - **WASD / arrow keys:** move. Touch direction buttons also move.
-- **E / Interact:** gather beside a resource or contribute beside camp.
-- Click a pack resource to choose what to contribute.
+- **E / Interact:** gather beside a grove/quarry, collect driftwood after
+  recession, or bank one selected material at the central storehouse.
+- **B:** build a wood wall on the highlighted adjacent tile (3 wood).
+- **V:** build a stone wall (3 stone + 1 wood).
+- **R:** repair a highlighted wall (1 matching material).
+- Face a tile by moving toward it, or click an adjacent tile. Buttons also
+  support building and repairing. Click a pack resource to select what to bank.
 - **Reconnect:** reconnect using the same private identity.
-- Walk left for Willow, right for Quartz; bring **4 Willow + 2 Quartz** to camp.
-  The upgrade opens a real southern bridge to Sunstone.
-- Bring **3 Sunstone** back to light the shared beacon.
-- Every **75 seconds**, the northern bridge switches sides. A **12-second
-  warning** precedes the shift. Travelers on a disappearing bridge return
-  safely to camp. Packs and camp upgrades are not reset; resource nodes refill.
+
+### Your first wall
+
+Walk left and slightly up from the storehouse to the **starter grove**.
+Press E three times to gather 3 wood. From the grove, face left and press B
+to build on the glowing marker. Stay on the grove and watch the wall block
+the first surge. The three-step tracker records this permanently.
+Then protect more land, repair battered walls, or work on the shared Lookout.
+
+### The tide
+
+A gathering countdown normally lasts **90 seconds**. The always-visible countdown gives its
+height; tile numbers show ground elevation. During the final **15 seconds**,
+every tile forecast to flood is red. At surge, water spreads from the sea
+through tiles **below** that height, unless blocked by high ground or a wall
+strong enough for that surge. Flooded tiles cannot be crossed.
+
+Wood walls hold up to height **3**; stone walls hold up to **5**. Successful
+defenses wear down durability, shown on each wall. Repair before it breaks;
+broken walls do not block water. A higher surge overtops a weaker wall.
+Surge heights repeat predictably, with **every eighth a height-6 King Tide**.
+Neither wall type alone can stop a King Tide: use elevation-6 ridges as
+natural barriers, preserve high fields, and bank supplies to rebuild afterward.
+The elevation-7 haven and its recovery resources always stay safe.
+
+Flooded nodes wash away. A swept traveler returns to the haven and loses
+**only carried materials**—banked materials, identity, and shared construction
+remain. Water then recedes, leaving driftwood to gather. Groves and quarries
+refill only if their tile stayed dry through the previous tide; repeatedly
+flooded land stays stripped. Protected land is a renewable shared resource.
+
+Bank **12 wood + 8 stone** at the storehouse to build the **Lookout**, extending
+warnings and revealing the next two surge forecasts. The haven board tracks
+dry land held, tides weathered, and top builders. There is no permanent win
+or game over; even a battered world can recover.
+
+### Timing configuration
+
+```sh
+TIDE_PERIOD_MS=30000 TIDE_WARNING_MS=10000 \
+  HOST=127.0.0.1 PORT=3000 DB_PATH=/absolute/writable/path/world.sqlite npm start
+```
+
+`TIDE_PERIOD_MS` defaults to `90000`; `TIDE_WARNING_MS` defaults to `15000`.
+They are server settings, not browser controls. Use short timings to play
+several tides quickly. Keep the warning shorter than the period; all timing
+values must be integer milliseconds, at least `100`.
+Surge holds water for `TIDE_SURGE_MS` (default `8000`), followed by
+`TIDE_RECEDE_MS` (default `5000`) of recession before the next gathering
+countdown starts. Thus default surge-to-surge time is about 103 seconds.
+A saved
+world retains its current tide progress; restart never advances offline time.
 
 Your browser stores a private guest credential for each backend origin.
 Nicknames are labels, not login credentials. Keep browser storage to retain
@@ -46,10 +97,11 @@ your traveler; clearing it creates a new identity. Only one active connection
 per identity is allowed. Do not share credentials or move production saves
 into the public assets directory.
 
-SQLite stores inventories, resource availability, camp progression, positions,
-and the shift schedule. Inventory deductions and shared awards are transactional.
-Restart with the **same DB_PATH** to keep progress. Offline time advances the
-tide schedule but does not remove packs or camp upgrades. Back up a running
+SQLite stores carried materials, resource availability, walls, objectives,
+bank, positions, flood history, and tide progress. Costs and shared awards are transactional.
+Restart with the **same DB_PATH** to keep progress. Offline time never advances
+the tide schedule: tides advance only with an authenticated connection.
+Back up a running
 SQLite database with a SQLite-aware backup tool, or stop the server before
 copying the save and its associated files.
 
@@ -65,9 +117,12 @@ npm run test:package                       # extracts ZIPs and joins the bundled
 ```
 
 `npm run verify` is the CI acceptance command. The browser journey starts at
-the join UI and uses real keyboard/pointer controls, including a normal-speed
-shift and an actual server restart against the same temporary database.
+the join UI and uses real keyboard/pointer controls, including accelerated
+tides and an actual server restart against the same temporary database.
 Read-only `window.shiftlands` snapshots assist observation, not action execution.
+Snapshots include tide phase/time/height, forecast and flooded tiles, walls,
+carried materials, and objective progress. They contain no bearer credentials
+and cannot be used to control the server.
 Gameplay evidence and actual actions/results are in
 [evidence/verification.txt](evidence/verification.txt).
 Future contributors and agents should follow [AGENTS.txt](AGENTS.txt),
@@ -134,16 +189,16 @@ This is a tiny shared-world cooperative slice, not an MMO. Two-player browser
 play is the acceptance target; larger-scale load, public-internet operations,
 and cross-browser/mobile-device support are not measured. The server caps
 WebSocket connections at 32 as a safety bound, not a tested capacity claim.
-Guest identity has no account recovery or cross-device transfer. Once the
-beacon is complete, exploration/gathering continue but no additional upgrade
-tiers are implemented. Run **one backend process per database**; multi-instance
+Guest identity has no account recovery or cross-device transfer. Audio, accounts,
+additional building types, and elaborate art are out of scope.
+Run **one backend process per database**; multi-instance
 deployment and shared session coordination are not supported.
 
 ## Game Off 2026
 
-This project interprets **SHIFT** as changing traversable island connections,
-not a cosmetic palette change. The camp and inventory are lasting anchors
-while the surrounding routes change.
+This project interprets **SHIFT** as tides physically redrawing land and sea,
+not a cosmetic palette change. The haven and shared defenses are lasting anchors
+while the surrounding shores flood and recede.
 
 Rules below are the verified official rules supplied with the project brief;
 the official pages could not be independently retrieved from this sandbox:
@@ -175,4 +230,4 @@ licenses and distribution notices.
 
 GitHub Copilot cloud agents assisted with design, implementation, original
 geometric artwork, tests, and documentation. The user chose the persistent
-cooperative shifting-islands concept.
+cooperative Rising Tide design.
