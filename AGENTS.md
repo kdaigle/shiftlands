@@ -1,0 +1,9 @@
+# Shiftlands project guidance
+
+- Preserve the narrow cooperative loop: explore, gather, build a lasting camp, and adapt to real route changes. No offline punishment.
+- The server owns identity, movement, inventory, resources, and upgrades. Nicknames and public player IDs are not credentials. Save inventory and shared progress in one SQLite transaction.
+- Test with temporary databases. Restart against the same database to verify durability; never delete a player's or deployed database.
+- Before calling a gameplay change complete, build production assets and play from the join screen in two isolated real browser contexts using keyboard/pointer input. Never substitute teleportation, internal action calls, or mocked sockets for the player journey.
+- Retain gameplay screenshots and a concise action/result record. Check both players' movement and shared progress, conflicts, visible invalid-action feedback, reconnect, a warned route-changing shift, restart persistence, console errors, and an iframe-sized viewport.
+- Keep runtime artifacts and mutable databases out of git. Packages must run without installing runtime dependencies. Public multiplayer hosting and jam submission require separate authorization.
+- Keep README commands accurate, disclose AI assistance, and record actual asset provenance separately from the MIT code license.

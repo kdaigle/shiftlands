@@ -1,0 +1,9 @@
+node_modules/
+dist/
+artifacts/
+.work/
+playwright-report/
+test-results/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

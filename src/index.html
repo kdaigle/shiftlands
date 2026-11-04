@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d272c"><title>Shiftlands · A haven between tides</title><link rel="stylesheet" href="./style.css"></head>
+<body>
+<main>
+  <header><div class="brand"><span class="sigil">✦</span><div><h1>SHIFTLANDS</h1><p>A haven between tides</p></div></div><div id="connection" role="status">OFFLINE</div></header>
+  <section id="join" class="join">
+    <div><span class="eyebrow">A SMALL COOPERATIVE EXPEDITION</span><h2>The sea moves.<br>Build something that stays.</h2><p>Gather willow & quartz with a friend. Raise a bridge, discover Sunstone, and light your shared beacon.</p><div class="story-tags"><span>2–8 travelers recommended</span><span>75-second tides</span><span>Persistent haven</span></div></div>
+    <form id="join-form"><h3>Set sail</h3><label for="nickname">Traveler nickname</label><input id="nickname" name="nickname" maxlength="18" autocomplete="nickname" placeholder="e.g. Fern" required><label for="backend">Backend address <small>(local or your hosted server)</small></label><input id="backend" name="backend" type="url" placeholder="https://your-backend.example" required><button type="submit">Enter the islands <span>↗</span></button><p id="join-error" role="alert"></p><small>Your private identity stays in this browser. Nicknames do not grant access to saved packs. One active tab per identity.</small></form>
+  </section>
+  <section id="play" hidden>
+    <div class="hud"><div><span class="eyebrow">SHARED HAVEN</span><h2 id="camp-title">Build the southern bridge</h2><p id="progress">Willow 0 / 4 · Quartz 0 / 2</p></div><div class="tide"><span id="tide-label">NEXT SHIFT</span><strong id="countdown">75s</strong><span id="route">West northern route</span></div></div>
+    <div class="stage"><canvas id="world" width="800" height="600" tabindex="0" aria-label="Shiftlands game world. Move using WASD or arrow keys; E interacts."></canvas><div class="map-label">THE TIDEBREAK ARCHIPELAGO <span id="population">1 traveler</span></div></div>
+    <div class="bottom"><div class="pack"><span class="eyebrow">YOUR PACK</span><div id="inventory"><button data-resource="wood" class="selected">Willow <b>0</b></button><button data-resource="crystal">Quartz <b>0</b></button><button data-resource="amber">Sunstone <b>0</b></button></div></div><div class="guide"><strong id="hint">Walk to Willow Grove ← to gather.</strong><p><kbd>WASD</kbd> / <kbd>↑↓←→</kbd> move · <kbd>E</kbd> gather / contribute · click pack to choose</p></div><button id="reconnect" class="subtle">Reconnect</button></div>
+    <p id="notice" role="status" aria-live="polite">Welcome, traveler. Your shared haven starts here.</p>
+    <div class="touch" aria-label="Touch controls"><div class="pad"><button data-key="ArrowUp" aria-label="Move up">↑</button><button data-key="ArrowLeft" aria-label="Move left">←</button><button data-key="ArrowDown" aria-label="Move down">↓</button><button data-key="ArrowRight" aria-label="Move right">→</button></div><button id="interact">E · Interact</button></div>
+  </section>
+  <footer>Nothing purchased. Nothing lost to the tide. <span>Invite a friend to this backend; build together.</span></footer>
+</main>
+<script type="module" src="./game.js"></script>
+</body></html>

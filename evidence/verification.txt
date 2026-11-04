@@ -1,0 +1,19 @@
+Shiftlands verification — 2026-11-04T01:59:44.581Z
+Early smoke: production 127.0.0.1:3000, two isolated Playwright contexts joined UI before broad tests/polish.
+Real E2E: Node v26.13.0; bundled production server; Chromium; two isolated contexts; no teleport, engine mutations or socket mocks in journey.
++0.9s Two isolated contexts joined via nickname UI; two distinct identities visible.
++1.3s Duplicate tab with same stored bearer visibly rejected; original session remained active.
++3.6s E at bridge midpoint visibly rejected by authoritative range check.
++8.4s Both travelers walked to resources and gathered with E; remote movement observed.
++13.1s Both contributed with E: 4 willow + 2 quartz; shared tier1 opened tangible south bridge.
++21.3s Both traversed newly built bridge, gathered Sunstone and contributed 3 total: beacon complete.
++29.3s Moss walked onto vanishing west route at 300,190; packs retain 1 willow / 1 quartz.
++63.4s Visible 12-second shift warning observed at normal 75-second interval.
++75.7s Real tide changed west→east; Moss safely relocated to camp; both inventory packs and beacon persisted.
++75.8s UI Reconnect restored the same private identity and pack.
++75.9s Actual backend SIGTERM and failed health request confirmed stopped process.
++78.5s New process opened SAME .work/e2e/journey.sqlite; both auto-reconnected with same IDs, packs, tier2 bank, phase, nextShift and shift count.
++78.9s Real 720×650 iframe loaded join UI; active game at same viewport remained readable without horizontal overflow.
+Console/page errors: 0; 2 expected connection-refused transport logs collected only while backend stopped.
+Screenshots: upgraded-two-player.png, before-shift.png, after-shift.png, embedded-viewport.png — genuine canvas gameplay.
+Process start log: Shiftlands listening http://127.0.0.1:3102; DB /home/runner/work/shiftlands/shiftlands/.work/e2e/journey.sqlite; cap 32 connections | Shiftlands listening http://127.0.0.1:3102; DB /home/runner/work/shiftlands/shiftlands/.work/e2e/journey.sqlite; cap 32 connections
