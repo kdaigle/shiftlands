@@ -1,6 +1,7 @@
 node_modules/
 dist/
-artifacts/
+artifacts/*
+!artifacts/shiftlands-runtime.provenance.json
 .work/
 playwright-report/
 test-results/

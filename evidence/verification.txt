@@ -1,32 +1,31 @@
-Shiftlands verification — 2026-11-04T02:34:50.060Z
-Early smoke: production 127.0.0.1:3000, two isolated Playwright contexts joined UI before broad tests/polish.
-Real E2E: Node v26.13.0; bundled production server; Chromium; two isolated contexts; no teleport, engine mutations or socket mocks in journey.
-+1.2s Two isolated contexts joined via nickname UI; two distinct identities visible.
-+1.8s Duplicate tab with same stored bearer visibly rejected; original session remained active.
-+5.0s E at bridge midpoint visibly rejected by authoritative range check.
-+10.0s Both gathered with E; both observers saw shared nodes change8→3 willow and8→5 quartz, plus remote movement.
-+14.9s Both contributed with E: 4 willow + 2 quartz; shared tier1 opened tangible south bridge.
-+24.8s Both traversed newly built bridge, gathered Sunstone and contributed 3 total: beacon complete.
-+32.7s Moss walked onto vanishing west route at 299,190; packs retain 1 willow / 1 quartz.
+Shiftlands verification — 2026-11-04T05:01:25.294Z
+Follow-on delivery: continued PR #1 head c78e6a432ce1a42680132f04579c9518188b9d95 on copilot/continue-shiftlands-implementation; no game-scope expansion.
+Real E2E: Node v22.23.4; bundled production server; Chromium; two isolated contexts; no teleport, engine mutations or socket mocks in journey.
++0.5s Two isolated contexts joined via nickname UI; two distinct identities visible.
++0.8s Duplicate tab with same stored bearer visibly rejected; original session remained active.
++3.2s E at bridge midpoint visibly rejected by authoritative range check.
++8.0s Both gathered with E; both observers saw shared nodes change8→3 willow and8→5 quartz, plus remote movement.
++12.9s Both contributed with E: 4 willow + 2 quartz; shared tier1 opened tangible south bridge.
++20.4s Both traversed newly built bridge, gathered Sunstone and contributed 3 total: beacon complete.
++27.0s Moss walked onto vanishing west route at 300,190; packs retain 1 willow / 1 quartz.
 +63.5s Visible 12-second shift warning observed at normal 75-second interval.
-+76.0s Real tide changed west→east; Moss safely relocated to camp; both inventory packs and beacon persisted.
-+76.4s UI Reconnect observed NEW authenticated welcome generation1→2 and fresh snapshot after click; same private ID/pack.
-+76.4s Actual backend SIGTERM and failed health request confirmed stopped process.
-+79.2s New process opened SAME unique .work/e2e/shiftlands-e2e-MLeoFb/world.sqlite; both NEW welcome generations and snapshot.now>1793759666680 observed before asserting same IDs/packs/tier2 bank/phase/nextShift/shift count.
-+80.1s Real 720×650 iframe loaded join UI; active game at same viewport remained readable without horizontal overflow.
-+101.3s Duplicate UI kept visible rejection, protected original until tab close, then AUTOMATICALLY retried after20.6s and recovered same ID/pack without clicking Reconnect.
++75.6s Real tide changed west→east; Moss safely relocated to camp; both inventory packs and beacon persisted.
++75.8s UI Reconnect observed NEW authenticated welcome generation1→2 and fresh snapshot after click; same private ID/pack.
++75.8s Actual backend SIGTERM and failed health request confirmed stopped process.
++78.3s New process opened SAME unique .work/e2e/shiftlands-e2e-R78ion/world.sqlite; both NEW welcome generations and snapshot.now>1793768463180 observed before asserting same IDs/packs/tier2 bank/phase/nextShift/shift count.
++78.6s Real 720×650 iframe loaded join UI; active game at same viewport remained readable without horizontal overflow.
++99.4s Duplicate UI kept visible rejection, protected original until tab close, then AUTOMATICALLY retried after20.5s and recovered same ID/pack without clicking Reconnect.
 Console/page errors: 0; 2 expected connection-refused transport logs collected only while backend stopped.
-Screenshots: upgraded-two-player.png, before-shift.png, after-shift.png, embedded-viewport.png — genuine canvas gameplay.
-Final heartbeat matrix: npm run verify/package/test:package PASS on exact Node22.13.0 AND26.13.0; typecheck/build,8/8 invariant/adversarial tests,1/1 genuine E2E each. Normal75-second shifts unchanged.
-Half-open protocol: production pings every10s and terminates missing-pong sockets within~20s. Separate real protocol test alone uses NODE_ENV=test TEST_HEARTBEAT_MS=150;ws autoPong:false expired, same bearer then welcomed;responsive auto-pong client remained active across>=3pings and rejected another tab. No live-session takeover.
-Client duplicate recovery: visible duplicate rejection retained;automatic retry follows server heartbeat window. Genuine E2E closed original tab, waited normal20.5-second retry, and recovered same private ID/pack automatically. Explicit Reconnect also requires new welcome generation and fresh snapshot;restart snapshot.now>restart time checked before persistence assertions.
-All unit/network/E2E/package-smoke DBs uniquely generated via project-local mkdtemp/mkdtempSync;cleanup only returned directories;no fixed/PID/guessed DB deletion;system temporary directories prohibited. E2E restart used SAME generatedDB.
-True network races cover final node claim,final bridge crystal,final beacon amber:one success/one rejection,one tier transition,bank target only,loser inventory conserved,both sockets observe tier2. Both journey observers verify shared node depletion.
-ZIPs include byte-identical parent README.md/ASSETS.txt,LICENSE,full ws MIT/esbuild generated-helper notices,REVISION.json;externalDB/no npm runtime install;real cross-origin static ZIP join0errors. Original data-SVG favicon plus/favicon.ico204 verified. RELEASE_SHA=<committed SHA> npm run package guards mismatch/dirty runtime/build/docs inputs.
-CI/delivery limitation:app push rejected for missing workflows permission;workflow removed and will not be recreated. npm run verify is the source CI acceptance command;maintainer may run it in existing CI. No Actions/sandbox artifact upload confirmed;ZIP paths are local outputs only. Dependencies ws8.22.1/esbuild0.28.2/typescript7.0.2/@playwright/test1.64.1/@types/node22.20.5/@types/ws8.18.2:no advisories. Earlier action checks reported no advisories but no workflow is installed. git diff --check PASS. No deployment.
-Independent parent corroboration(reported2026-11-04T02:22:55Z):UI Sage+Cove plus Reed,genuine WASD180/620,E4wood/2crystal,Cove saw remote Sage x187.625,both camp contributions tier1,Sage south400,502.5 E1Sunstone;parent separately captured production screenshot.
-Manual production stays detached http://127.0.0.1:3000,HOST=127.0.0.1 PORT=3000 DB_PATH=.work/manual/world.sqlite outside dist,same player DB.
-Local-only artifact follow-up2026-11-04T02:37:58Z:npm run package/test:package PASS,current checkpoint85ec0581e1320e3029d2988890ba62a8ed0974bb,revision marker sourceDirty=false for packaging inputs. Parent still amending unpushed checkpoint to omit workflow;final-SHA rebuild pending. No confirmed downloadable upload.
-Runtime exact path:/home/runner/work/shiftlands/shiftlands/artifacts/shiftlands-runtime.zip;SHA25628bd08c46aaaa90664fd43cec9774af4bebf041a7443eb5e44e48cb1527c7c03.
-Static exact path:/home/runner/work/shiftlands/shiftlands/artifacts/shiftlands-itch.zip;SHA2565592391b3cbe1c95860d16fb335a142d93b6dd9dd45a9b8e6228ebf786829db1.
-Process start log: Shiftlands listening http://127.0.0.1:3102; DB /home/runner/work/shiftlands/shiftlands/.work/e2e/shiftlands-e2e-MLeoFb/world.sqlite; cap 32 connections | Shiftlands listening http://127.0.0.1:3102; DB /home/runner/work/shiftlands/shiftlands/.work/e2e/shiftlands-e2e-MLeoFb/world.sqlite; cap 32 connections
+Screenshots: upgraded-two-player.png, before-shift.png, after-shift.png, embedded-viewport.png — genuine canvas gameplay retained from the base branch. This run regenerated the same views locally; no new screenshot binaries committed because gameplay is unchanged.
+Process start log: Shiftlands listening http://127.0.0.1:3102; DB /home/runner/work/shiftlands/shiftlands/.work/e2e/shiftlands-e2e-R78ion/world.sqlite; cap 32 connections | Shiftlands listening http://127.0.0.1:3102; DB /home/runner/work/shiftlands/shiftlands/.work/e2e/shiftlands-e2e-R78ion/world.sqlite; cap 32 connections
+
+Current validation (Node v22.23.4, npm 10.9.9, Linux x86_64):
+npm ci PASS (0 npm-reported vulnerabilities).
+npm run verify PASS: TypeScript, production build, 8/8 invariant/network tests, 1/1 real Chromium two-player journey above.
+npm run package and npm run test:package PASS: both ZIPs extracted, bundled backend started without npm install, external temporary DB, static client genuinely joined cross-origin, 0 browser errors, full software notices checked.
+Two builds with different parent TZ settings produced identical runtime AND static ZIP bytes. Package markers now use source commit time; ZIP file order, permissions, timestamps and extra fields are normalized.
+Regression checks assert source timestamp/Node marker and exact runtime file allowlist (no dependencies, test files, database or user content).
+Targeted internal review covered full src/server.ts, world.ts, client.ts, shared.ts and existing adversarial tests: random/hash-only guest credentials, public-ID rejection, duplicate sessions, heartbeat/reconnect, authoritative movement/range/schema/sequence validation, transactional gathering/upgrades and rollback, SQL/static allowlists, textContent/canvas output. No concrete exploitable issue identified; no gameplay code changed. This is not a formal external security audit.
+GitHub PR #1 has no review comments. Actions API reports the prior cloud-agent run 41755604182 cancelled, with no failed jobs. No project CI workflow exists or was added.
+Delivery ZIP will be built only after committing these source/build/documentation inputs. The adjacent artifacts/shiftlands-runtime.provenance.json will record the exact clean source SHA and final archive checksum; final delivery checks follow below.
+No live public backend, deployment, release, or itch.io submission was created. Sandbox testing cannot independently establish public-network reachability, coordinator OS/browser compatibility, larger-scale load, or current jam-site rules.

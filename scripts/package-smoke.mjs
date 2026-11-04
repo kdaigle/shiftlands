@@ -14,15 +14,20 @@ for (const [zip, dir] of [['runtime','runtime'],['itch','static']]) {
 assert.ok(!(await readdir(`${root}/runtime`)).includes('node_modules'));
 assert.ok(!(await readdir(`${root}/static`)).includes('server.mjs'));
 const expectedRevision=spawnSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).stdout.trim();
+const expectedDate=new Date(Number(spawnSync('git',['show','-s','--format=%ct','HEAD'],{encoding:'utf8'}).stdout.trim())*1000).toISOString();
 for (const dir of ['runtime', 'static']) {
   const marker=JSON.parse(await readFile(`${root}/${dir}/REVISION.json`,'utf8'));
   assert.equal(marker.revision,expectedRevision);
+  assert.equal(marker.sourceDate,expectedDate);
+  assert.equal(marker.node,process.version);
   assert.equal(typeof marker.sourceDirty,'boolean');
   assert.equal(await readFile(`${root}/${dir}/LICENSE`, 'utf8'), await readFile('LICENSE', 'utf8'));
   assert.equal(await readFile(`${root}/${dir}/ASSETS.txt`, 'utf8'), await readFile('ASSETS.txt', 'utf8'));
   assert.equal(await readFile(`${root}/${dir}/README.md`, 'utf8'), await readFile('README.md', 'utf8'));
   assert.ok((await readFile(`${root}/${dir}/THIRD_PARTY_NOTICES.txt`, 'utf8')).includes(await readFile('node_modules/esbuild/LICENSE.md', 'utf8')));
 }
+assert.deepEqual((await readdir(`${root}/runtime`)).sort(), ['ASSETS.txt','LICENSE','README.md','REVISION.json','START.txt','THIRD_PARTY_NOTICES.txt','public','server.mjs'].sort());
+assert.deepEqual((await readdir(`${root}/runtime/public`)).sort(), ['game.js','index.html','style.css']);
 assert.ok((await readFile(`${root}/runtime/THIRD_PARTY_NOTICES.txt`, 'utf8')).includes(await readFile('node_modules/ws/LICENSE', 'utf8')));
 const bundled = await readFile(`${root}/runtime/server.mjs`, 'utf8');
 assert.ok(!/from ["'](?:ws|esbuild|typescript)["']/.test(bundled));
