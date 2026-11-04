@@ -11,9 +11,9 @@ same-database backend restart. It is not publicly hosted.
 
 ## Play
 
-Use **Node 22.13+** (built-in SQLite required). The complete validation was
-exercised on **Node 22.13.0 and Node 26.13.0**; development also used Node
-22.23.4.
+Use **Node 22.13+** (built-in SQLite required). This delivery is validated on
+**Node 22.23.4**. Earlier branch evidence records runs on Node 22.13.0 and
+26.13.0; those versions were not re-tested for this delivery.
 
 From the repository root:
 
@@ -94,11 +94,34 @@ Both ZIPs include `REVISION.json`. For a release tied to a clean committed
 revision, use `RELEASE_SHA="$(git rev-parse HEAD)" npm run package`;
 mismatched revisions or dirty package inputs are rejected.
 
-Generated archives are local build outputs, excluded from version control.
-The implementation app cannot publish GitHub Actions workflows: the GitHub
-push was rejected for missing `workflows` permission. No workflow was
-installed. A maintainer can run `npm run verify` in CI, then `npm run package`
-and upload `artifacts/` using their existing artifact mechanism.
+The delivered runtime is the sole generated archive intentionally tracked:
+[artifacts/shiftlands-runtime.zip](artifacts/shiftlands-runtime.zip).
+Its adjacent [provenance record](artifacts/shiftlands-runtime.provenance.json)
+contains the exact clean source commit and SHA-256. Download the ZIP using
+GitHub's **Raw / Download raw file** button on this PR branch, not the HTML
+file preview. No dependency directory, database, or Node executable is bundled;
+only Node 22.13+ is required on the coordinator's machine.
+
+Extract the ZIP into a new directory, change into it, and run:
+
+```sh
+DB_PATH=/absolute/writable/path/outside-the-runtime/world.sqlite node server.mjs
+```
+
+By default it binds only to **127.0.0.1:3000**. Open
+`http://127.0.0.1:3000`; `curl http://127.0.0.1:3000/health` checks readiness.
+Override `HOST` and `PORT` explicitly if needed. Keep operational saves outside
+the repository and extracted runtime. No build step or `npm install` is needed.
+
+To reproduce the delivered ZIP, check out the provenance record's **source
+commit** in a clean checkout, use its recorded Node/npm/zip versions, run
+`npm ci`, then `RELEASE_SHA="$(git rev-parse HEAD)" npm run package`.
+Packaging uses the source commit time, sorted file order, normalized file
+permissions/timestamps and stripped ZIP extra fields; two same-toolchain builds
+must produce the recorded checksum. `REVISION.json` records that source commit,
+source timestamp, Node version and `sourceDirty: false`. Later delivery commits
+add only the runtime and verification/provenance records, not runtime inputs.
+Other generated outputs remain ignored. No workflow is installed or added.
 
 This repository is not a public game server; sandbox localhost is not an
 externally reachable preview or permanent hosting. No public backend has
