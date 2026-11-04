@@ -3,7 +3,7 @@ const el = <T extends HTMLElement>(id: string) => document.getElementById(id) as
 const canvas = el<HTMLCanvasElement>('world');
 const ctx = canvas.getContext('2d')!;
 let state: Snapshot | undefined, socket: WebSocket | undefined, seq = 0, selected: Resource = 'wood', backend = '', token = '', reconnectTimer: ReturnType<typeof setTimeout> | undefined;
-let connected = false, manualClose = false, errors = 0;
+let connected = false, manualClose = false, errors = 0, generation = 0, snapshotGeneration = 0;
 const keys = new Set<string>();
 const names = { wood: 'Willow', crystal: 'Quartz', amber: 'Sunstone' };
 const params = new URLSearchParams(location.search);
@@ -46,6 +46,9 @@ function connect() {
   clearTimeout(reconnectTimer);
   if (socket && socket.readyState < WebSocket.CLOSED) {
     const old = socket;
+    connected = false;
+    keys.clear();
+    el('connection').textContent = 'CONNECTING';
     manualClose = true;
     old.onclose = null;
     old.addEventListener('close', () => { if (socket === old) { socket = undefined; connect(); } }, { once: true });
@@ -55,21 +58,30 @@ function connect() {
   connected = false; seq = 0; manualClose = false;
   el('connection').textContent = 'CONNECTING';
   const ws = new WebSocket(backend.replace(/^http/, 'ws') + '/socket');
+  let duplicateSession = false, retryAfterMs = 20_500;
   socket = ws;
   ws.onopen = () => ws.send(JSON.stringify({ type: 'auth', token }));
   ws.onmessage = event => {
+    if (socket !== ws) return;
     const data = JSON.parse(event.data) as Snapshot | { type: string; message?: string };
-    if (data.type === 'welcome') { connected = true; errors = 0; el('connection').textContent = 'ONLINE · PACK SAVED'; canvas.focus(); }
-    if (data.type === 'snapshot') { state = data as Snapshot; renderHud(); }
+    if (data.type === 'welcome') { connected = true; generation++; errors = 0; el('connection').textContent = 'ONLINE · PACK SAVED'; if (generation > 1 || el('notice').textContent?.includes('another tab')) notice('Reconnected. Your private pack and shared haven are saved.'); canvas.focus(); }
+    if (data.type === 'snapshot') { state = data as Snapshot; snapshotGeneration = generation; renderHud(); }
     if (data.type === 'notice' || data.type === 'error') {
       notice(data.message ?? '');
-      if (data.message?.includes('another tab') || data.message?.includes('private identity')) manualClose = true;
+      if (data.message?.includes('another tab')) {
+        duplicateSession = true;
+        if ('retryAfterMs' in data && typeof data.retryAfterMs === 'number' && Number.isFinite(data.retryAfterMs)) retryAfterMs = Math.min(30_000, Math.max(500, data.retryAfterMs));
+      }
+      if (data.message?.includes('private identity')) manualClose = true;
     }
   };
   ws.onclose = () => {
     if (socket !== ws) return;
     connected = false; keys.clear(); el('connection').textContent = 'OFFLINE · PACK SAVED';
-    if (!manualClose) { notice('Connection lost. Your pack is saved; reconnecting…'); reconnectTimer = setTimeout(connect, Math.min(5000, 800 + errors++ * 600)); }
+    if (!manualClose) {
+      if (!duplicateSession) notice('Connection lost. Your pack is saved; reconnecting…');
+      reconnectTimer = setTimeout(connect, duplicateSession ? retryAfterMs : Math.min(5000, 800 + errors++ * 600));
+    }
   };
   ws.onerror = () => {};
 }
@@ -187,5 +199,5 @@ function draw(time: number) {
   }
   requestAnimationFrame(draw);
 }
-Object.defineProperty(window, 'shiftlands', { get: () => state ? JSON.parse(JSON.stringify({ ...state, connected })) : null, configurable: false });
+Object.defineProperty(window, 'shiftlands', { get: () => state ? JSON.parse(JSON.stringify({ ...state, connected, generation, snapshotGeneration })) : null, configurable: false });
 requestAnimationFrame(draw);

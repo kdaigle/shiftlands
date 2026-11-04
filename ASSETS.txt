@@ -3,8 +3,9 @@ Shiftlands asset provenance
 
 The game uses original lightweight geometric/vector artwork drawn by its
 client renderer: islands, water, paths, trees/resources, camp structures,
-and player characters. No downloaded image, font, music, or sound assets
-are included. System fonts remain provided by the player's operating system.
+and player characters, plus an original inline SVG favicon. No downloaded
+image, font, music, or sound assets are included. System fonts remain
+provided by the player's operating system.
 
 These original artwork assets are MIT-licensed by the repository owner,
 alongside the code (see LICENSE). This is an explicit license for these

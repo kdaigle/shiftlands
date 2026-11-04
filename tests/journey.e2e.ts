@@ -1,8 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
 import { spawn, type ChildProcess } from 'node:child_process';
-import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import type { Snapshot } from '../src/shared.js';
-type Observation = Snapshot & { connected: boolean };
+type Observation = Snapshot & { connected: boolean; generation: number; snapshotGeneration: number };
 const URL = 'http://127.0.0.1:3102';
 async function snapshot(page:Page) {return await page.evaluate(()=> (window as unknown as {shiftlands:Observation}).shiftlands);}
 async function self(page:Page) {const s=await snapshot(page);return s.players.find(p=>p.id===s.you)!;}
@@ -23,7 +24,7 @@ async function walk(page:Page,x:number,y:number) {
 async function action(page:Page,count=1) {for(let i=0;i<count;i++){await page.keyboard.press('e');await page.waitForTimeout(410);}}
 test('two real travelers build, explore, weather a normal tide, reconnect and retain the same SQLite world after actual restart',async({browser})=>{
   await mkdir('.work/e2e',{recursive:true});await mkdir('evidence',{recursive:true});
-  const db='.work/e2e/journey.sqlite';await rm(db,{force:true});await rm(db+'-wal',{force:true});await rm(db+'-shm',{force:true});
+  const directory=await mkdtemp(join('.work/e2e','shiftlands-e2e-')),db=join(directory,'world.sqlite');
   let server:ChildProcess|undefined,log='',serverErrors='',backendStopped=false,expectedTransportErrors=0;
   const start=async()=>{
     server=spawn(process.execPath,['dist/server.mjs'],{env:{...process.env,HOST:'127.0.0.1',PORT:'3102',DB_PATH:db},stdio:'pipe'});
@@ -57,8 +58,10 @@ test('two real travelers build, explore, weather a normal tide, reconnect and re
     await walk(fern,300,300);await action(fern);await expect(fern.locator('#notice')).toContainText('Too far');record('E at bridge midpoint visibly rejected by authoritative range check.');
     await Promise.all([walk(fern,180,300),walk(moss,620,300)]);
     await expect.poll(async()=>(await snapshot(moss)).players.find(p=>p.id===identity[0])!.x).toBeLessThan(220);
+    for(const page of pages)expect((await snapshot(page)).nodes.map(n=>n.remaining)).toEqual([8,8,8]);
     await Promise.all([action(fern,5),action(moss,3)]);
-    expect((await self(fern)).inventory.wood).toBe(5);expect((await self(moss)).inventory.crystal).toBe(3);record('Both travelers walked to resources and gathered with E; remote movement observed.');
+    for(const page of pages)await expect.poll(async()=>(await snapshot(page)).nodes.map(n=>n.remaining)).toEqual([3,5,8]);
+    expect((await self(fern)).inventory.wood).toBe(5);expect((await self(moss)).inventory.crystal).toBe(3);record('Both gathered with E; both observers saw shared nodes change8→3 willow and8→5 quartz, plus remote movement.');
     await Promise.all([walk(fern,400,300),walk(moss,400,300)]);
     await fern.locator('[data-resource=wood]').click();await moss.locator('[data-resource=crystal]').click();
     await Promise.all([action(fern,4),action(moss,2)]);
@@ -68,6 +71,7 @@ test('two real travelers build, explore, weather a normal tide, reconnect and re
     await Promise.all([walk(fern,400,300),walk(moss,400,300)]);
     await Promise.all([walk(fern,400,500),walk(moss,400,500)]);
     await Promise.all([action(fern,2),action(moss,1)]);
+    for(const page of pages)await expect.poll(async()=>(await snapshot(page)).nodes.find(n=>n.id==='sunstone')!.remaining).toBe(5);
     await Promise.all([walk(fern,400,300),walk(moss,400,300)]);
     await fern.locator('[data-resource=amber]').click();await moss.locator('[data-resource=amber]').click();
     await Promise.all([action(fern,2),action(moss,1)]);
@@ -85,20 +89,23 @@ test('two real travelers build, explore, weather a normal tide, reconnect and re
     await expect.poll(async()=>(await self(moss)).x).toBe(400);expect((await self(moss)).y).toBe(340);
     expect((await self(fern)).inventory).toEqual(packs[0]);expect((await self(moss)).inventory).toEqual(packs[1]);
     await fern.screenshot({path:'evidence/after-shift.png'});record('Real tide changed west→east; Moss safely relocated to camp; both inventory packs and beacon persisted.');
+    const previousGeneration=(await snapshot(fern)).generation,reconnectAt=Date.now();
     await fern.getByRole('button',{name:'Reconnect',exact:true}).click();
-    await expect.poll(async()=>(await snapshot(fern)).connected).toBe(true);expect((await snapshot(fern)).you).toBe(identity[0]);record('UI Reconnect restored the same private identity and pack.');
+    await expect.poll(async()=>{const s=await snapshot(fern);return s.connected&&s.generation>previousGeneration&&s.snapshotGeneration===s.generation&&s.now>reconnectAt;}).toBe(true);
+    expect((await snapshot(fern)).you).toBe(identity[0]);expect((await self(fern)).inventory).toEqual(packs[0]);
+    record(`UI Reconnect observed NEW authenticated welcome generation${previousGeneration}→${(await snapshot(fern)).generation} and fresh snapshot after click; same private ID/pack.`);
     const saved=await snapshot(fern);
+    const savedGenerations=await Promise.all(pages.map(async page=>(await snapshot(page)).generation));
     await stop();
     await expect(fern.locator('#connection')).toContainText('OFFLINE');
     let refused=false;try{await fetch(URL+'/health');}catch{refused=true;}expect(refused).toBe(true);record('Actual backend SIGTERM and failed health request confirmed stopped process.');
-    await new Promise(r=>setTimeout(r,1500));await start();
-    await expect.poll(async()=>(await snapshot(fern)).connected,{timeout:15_000}).toBe(true);
-    await expect.poll(async()=>(await snapshot(moss)).connected,{timeout:15_000}).toBe(true);
+    await new Promise(r=>setTimeout(r,1500));const restartAt=Date.now();await start();
+    for(let i=0;i<pages.length;i++)await expect.poll(async()=>{const s=await snapshot(pages[i]);return s.connected&&s.generation>savedGenerations[i]&&s.snapshotGeneration===s.generation&&s.now>restartAt;},{timeout:15_000}).toBe(true);
     await expect.poll(async()=>(await snapshot(fern)).players.length).toBe(2);
     const restored=await snapshot(fern);
     expect(restored.world).toEqual(saved.world);expect(restored.you).toBe(identity[0]);
     expect((await self(fern)).inventory).toEqual(packs[0]);expect((await self(moss)).inventory).toEqual(packs[1]);
-    record('New process opened SAME .work/e2e/journey.sqlite; both auto-reconnected with same IDs, packs, tier2 bank, phase, nextShift and shift count.');
+    record(`New process opened SAME unique ${db}; both NEW welcome generations and snapshot.now>${restartAt} observed before asserting same IDs/packs/tier2 bank/phase/nextShift/shift count.`);
     // Honest iframe check: a real same-origin embedding host, not just a resized top-level screenshot.
     const embed=await contexts[0].newPage();
     await embed.route('http://127.0.0.1:3102/embed-test',route=>route.fulfill({contentType:'text/html',body:`<!doctype html><html><body style="margin:0"><iframe title="Shiftlands embedded game" src="${URL}" width="720" height="650" style="border:0"></iframe></body></html>`}));
@@ -108,7 +115,19 @@ test('two real travelers build, explore, weather a normal tide, reconnect and re
     const geometry=await fern.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth,canvas:document.querySelector('canvas')!.getBoundingClientRect().width}));
     expect(geometry.scroll).toBeLessThanOrEqual(geometry.width);expect(geometry.canvas).toBeGreaterThan(650);
     await fern.screenshot({path:'evidence/embedded-viewport.png'});await embed.close();record('Real 720×650 iframe loaded join UI; active game at same viewport remained readable without horizontal overflow.');
+    const returning=await contexts[0].newPage();
+    returning.on('pageerror',e=>consoleErrors.push(e.message));
+    returning.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text());});
+    await returning.goto(URL);await returning.getByRole('button',{name:'Enter the islands'}).click();
+    await expect(returning.locator('#notice')).toContainText('another tab');
+    expect((await snapshot(fern)).connected).toBe(true);
+    const retryBegan=Date.now();await fern.close();
+    await returning.waitForTimeout(500);await expect(returning.locator('#notice')).toContainText('another tab');
+    await returning.waitForFunction(()=>(window as unknown as {shiftlands:Observation}).shiftlands?.connected,{},{timeout:30_000});
+    expect((await snapshot(returning)).you).toBe(identity[0]);expect((await self(returning)).inventory).toEqual(packs[0]);
+    await expect.poll(async()=>(await snapshot(returning)).players.length).toBe(2);
+    record(`Duplicate UI kept visible rejection, protected original until tab close, then AUTOMATICALLY retried after${((Date.now()-retryBegan)/1000).toFixed(1)}s and recovered same ID/pack without clicking Reconnect.`);
     expect(consoleErrors).toEqual([]);expect(serverErrors.replace(/\(node:\d+\) ExperimentalWarning: SQLite is an experimental feature(?: and might change at any time)?\n\(Use `node --trace-warnings \.\.\.` to show where the warning was created\)\n/g,'')).toBe('');
     await writeFile('evidence/verification.txt',`Shiftlands verification — ${new Date().toISOString()}\nEarly smoke: production 127.0.0.1:3000, two isolated Playwright contexts joined UI before broad tests/polish.\nReal E2E: Node ${process.version}; bundled production server; Chromium; two isolated contexts; no teleport, engine mutations or socket mocks in journey.\n${events.join('\n')}\nConsole/page errors: 0; ${expectedTransportErrors} expected connection-refused transport logs collected only while backend stopped.\nScreenshots: upgraded-two-player.png, before-shift.png, after-shift.png, embedded-viewport.png — genuine canvas gameplay.\nProcess start log: ${log.trim().replace(/\n/g,' | ')}\n`);
-  } finally {await Promise.all(contexts.map(c=>c.close()));await stop();}
+  } finally {await Promise.all(contexts.map(c=>c.close()));await stop();await rm(directory,{recursive:true,force:true});}
 });

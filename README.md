@@ -5,11 +5,15 @@ materials with friends, build a permanent camp upgrade, and explore the route
 it unlocks. Progress survives leaving the game and restarting the server.
 There is no combat, chat, trading, or offline punishment.
 
+**Status:** playable two-player prototype, browser-verified through gathering,
+shared upgrades, a warned route-changing shift, reconnect, and a real
+same-database backend restart. It is not publicly hosted.
+
 ## Play
 
-Use **Node 22.13+** (built-in SQLite required). Development was exercised on
-Node 22.23.4; the coordinator's Node 26 is compatible with the required APIs
-but has not yet been directly exercised here.
+Use **Node 22.13+** (built-in SQLite required). The complete validation was
+exercised on **Node 22.13.0 and Node 26.13.0**; development also used Node
+22.23.4.
 
 From the repository root:
 
@@ -57,6 +61,7 @@ npm run check                              # TypeScript
 npm test                                   # authoritative invariants
 npm run verify                             # production build + invariants + real two-browser journey
 npm run package                            # builds both distribution ZIPs
+npm run test:package                       # extracts ZIPs and joins the bundled backend
 ```
 
 `npm run verify` is the CI acceptance command. The browser journey starts at
@@ -65,6 +70,8 @@ shift and an actual server restart against the same temporary database.
 Read-only `window.shiftlands` snapshots assist observation, not action execution.
 Gameplay evidence and actual actions/results are in
 [evidence/verification.txt](evidence/verification.txt).
+Future contributors and agents should follow [AGENTS.txt](AGENTS.txt),
+especially its real-browser verification and safe-save requirements.
 
 Packaging creates:
 
@@ -83,6 +90,11 @@ Packaging creates:
   Multiplayer **requires a separately deployed HTTPS/WSS backend**; the ZIP
   does not contain a hosted server. Plain HTTP is blocked on an HTTPS client.
 
+Both ZIPs include `REVISION.json`. For a release tied to a clean committed
+revision, use `RELEASE_SHA="$(git rev-parse HEAD)" npm run package`;
+mismatched revisions or dirty package inputs are rejected.
+
+Generated archives are local build outputs, excluded from version control.
 The implementation app cannot publish GitHub Actions workflows: the GitHub
 push was rejected for missing `workflows` permission. No workflow was
 installed. A maintainer can run `npm run verify` in CI, then `npm run package`
@@ -101,7 +113,8 @@ and cross-browser/mobile-device support are not measured. The server caps
 WebSocket connections at 32 as a safety bound, not a tested capacity claim.
 Guest identity has no account recovery or cross-device transfer. Once the
 beacon is complete, exploration/gathering continue but no additional upgrade
-tiers are implemented.
+tiers are implemented. Run **one backend process per database**; multi-instance
+deployment and shared session coordination are not supported.
 
 ## Game Off 2026
 
