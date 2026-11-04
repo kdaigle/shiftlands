@@ -13,7 +13,7 @@ original assets, not a license grant over third-party material.
 
 AI assistance: GitHub Copilot cloud agents assisted with game design,
 implementation, geometric artwork, tests, and documentation. The user
-selected the persistent cooperative shifting-islands direction.
+selected the persistent cooperative Rising Tide design.
 
 Third-party software dependencies retain their own licenses. They are
 not artwork and are not relicensed by this repository's MIT LICENSE.

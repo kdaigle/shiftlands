@@ -1,15 +1,29 @@
-Rising Tide verification — 2026-11-04T17:23:09.435Z
+Rising Tide verification — 2026-11-04T17:26:52.677Z
 Node v22.23.4; bundled production server; two isolated Chromium contexts; genuine keyboard/pointer gameplay; read-only window.shiftlands observations; no socket mocks, teleports, internal actions or database edits.
-+1.2s Two isolated browsers joined through nickname UI; both show the sea-rise goal, three objectives and a live surge countdown.
-+1.6s Duplicate bearer session visibly rejected without disconnecting the original traveler.
-+1.6s Real B at the haven with an empty pack produces visible invalid-action feedback.
-+6.7s Fern walked to the starter grove, gathered three real E actions, clicked the adjacent glowing marker and built its wall with B; Moss observed movement, depletion and the same wall.
-+34.9s Real warning forecasts 206 flooded tiles; protected starter field is excluded and Moss's exposed grove is included in both browsers.
-+46.5s Real surge flooded 206 shared tiles and washed the exposed resource; wall wore 3→2 while protecting the pocket. Moss was swept to haven and lost only carried goods; Fern's pack, shared bank and construction survived.
-+46.8s UI Reconnect produced a fresh authenticated generation and snapshot, retaining Fern identity and inventory.
-+61.5s Actual SIGTERM made health unavailable; a new production process opened the SAME .work/e2e/rising-tide-PmlbEw/world.sqlite. Fresh welcome generations retain identities, inventory, walls, bank, lookout, tide, height, phase and shift count, with a ticking deadline.
-+61.7s A real 720×650 iframe loaded the join screen; active gameplay at that viewport retained readable countdown and canvas without horizontal overflow.
-+82.6s Duplicate tab automatically recovered the same saved identity and pack after the original tab closed.
++1.1s Two isolated browsers joined through nickname UI; both show the sea-rise goal, three objectives and a live surge countdown.
++1.4s Duplicate bearer session visibly rejected without disconnecting the original traveler.
++1.5s Real B at the haven with an empty pack produces visible invalid-action feedback.
++5.5s Fern walked to the starter grove, gathered three real E actions, clicked the adjacent glowing marker and built its wall with B; Moss observed movement, depletion and the same wall.
++34.7s Real warning forecasts 206 flooded tiles; protected starter field is excluded and Moss's exposed grove is included in both browsers.
++46.2s Real surge flooded 206 shared tiles and washed the exposed resource; wall wore 3→2 while protecting the pocket. Moss was swept to haven and lost only carried goods; Fern's pack, shared bank and construction survived.
++46.4s UI Reconnect produced a fresh authenticated generation and snapshot, retaining Fern identity and inventory.
++62.0s Actual SIGTERM made health unavailable; a new production process opened the SAME .work/e2e/rising-tide-oM0Xr9/world.sqlite. Fresh welcome generations retain identities, inventory, walls, bank, lookout, tide, height, phase and shift count, with a ticking deadline.
++62.2s A real 720×650 iframe loaded the join screen; active gameplay at that viewport retained readable countdown and canvas without horizontal overflow.
++83.1s Duplicate tab automatically recovered the same saved identity and pack after the original tab closed.
 Console/page errors: 0; 2 expected connection-refused logs only while backend stopped.
 Screenshots: join-screen.png, start.png, warning.png, before-surge.png, after-surge.png, swept-player.png.
-Process log: Shiftlands listening http://127.0.0.1:3102; DB /home/runner/work/shiftlands/shiftlands/.work/e2e/rising-tide-PmlbEw/world.sqlite; cap 32 connections | Shiftlands listening http://127.0.0.1:3102; DB /home/runner/work/shiftlands/shiftlands/.work/e2e/rising-tide-PmlbEw/world.sqlite; cap 32 connections
+Process log: Shiftlands listening http://127.0.0.1:3102; DB /home/runner/work/shiftlands/shiftlands/.work/e2e/rising-tide-oM0Xr9/world.sqlite; cap 32 connections | Shiftlands listening http://127.0.0.1:3102; DB /home/runner/work/shiftlands/shiftlands/.work/e2e/rising-tide-oM0Xr9/world.sqlite; cap 32 connections
+
+Final settled-source verification command: TMPDIR="$PWD/.work/browser-tmp" PLAYWRIGHT_BROWSERS_PATH="$PWD/.work/browsers" npm run verify
+Runtime: Node v22.23.4; npm 10.9.9.
+Results: typecheck PASS; production build PASS; invariant/network tests 22/22 PASS; real two-browser journey 1/1 PASS (83.1 seconds).
+Final committed-code CodeQL analysis: javascript analyzed, 0 alerts.
+No public deployment performed; production servers bound only to 127.0.0.1 for local verification.
+
+Working directory: /home/runner/work/shiftlands/shiftlands.
+npm ci PASS: existing lockfile, 0 npm-reported vulnerabilities.
+Tide timings in the browser journey: TIDE_PERIOD_MS=45000 TIDE_WARNING_MS=12000; surge/recede defaults 8000/5000.
+Independent manual UI check: joined production backend on 127.0.0.1:3105 with an external throwaway DB, inspected goal/countdown/map/marker, observed warnings and repeated tides, pressed E at storehouse and saw "No wood in your pack." Server stopped afterward.
+git diff --check PASS; changed text/source secret scans PASS.
+Not measured: public-network hosting, load beyond two browser players, other operating systems/browsers/devices. Lookout, King Tide, repairs, salvage and offline pause additionally verified by authoritative tests; browser journey covers the first-surging-tide loop, reconnect and restart.
+Design choices: one shared tutorial wall with personal gathering and real-hold milestones; wood/stone durability 3/5 and one-material full repair; an exhausted wall finishes its current hold before breaking; higher tides overtop and destroy weaker walls; King Tide requires high ground, banking and recovery rather than an unspecified stronger wall. Default gathering countdown is 90s plus 8s surge and 5s recession. Lookout previews future tile risk against the current wall layout.

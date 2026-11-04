@@ -48,13 +48,13 @@ the first surge. The three-step tracker records this permanently.
 Then protect more land, repair battered walls, or work on the shared Lookout.
 The marked construction is cooperative: if someone already built it, that
 step is credited to newcomers too. Gather your own 3 wood, help repair it,
-and watch a later successful defense. Builder rankings
-still credit only the traveler who actually placed each wall.
+and watch a later successful defense. Builder rankings still credit only the
+traveler who actually placed each wall.
 
 ### The tide
 
-A gathering countdown normally lasts **90 seconds**. The always-visible countdown gives its
-height; tile numbers show ground elevation. During the final **15 seconds**,
+A gathering countdown normally lasts **90 seconds**. The always-visible
+countdown gives its height; tile numbers show ground elevation. During the final **15 seconds**,
 every tile forecast to flood is red. At surge, water spreads from the sea
 through tiles **below** that height, unless blocked by high ground or a wall
 strong enough for that surge. Flooded tiles cannot be crossed.
@@ -64,7 +64,8 @@ defenses wear down durability, shown on each wall. Repair before it breaks;
 broken walls do not block the next surge. A wall's last durability point
 finishes holding the current surge before breaking. A higher surge overtops
 and destroys a weaker wall.
-Surge heights repeat **3, 4, 3, 5, 4, 5, 3, 6**, with **every eighth a height-6 King Tide**.
+Surge heights repeat **3, 4, 3, 5, 4, 5, 3, 6**, with **every eighth a
+height-6 King Tide**.
 Neither wall type alone can stop a King Tide: use elevation-6 ridges as
 natural barriers, preserve high fields, and bank supplies to rebuild afterward.
 The elevation-7 haven and its recovery resources always stay safe.
@@ -76,7 +77,9 @@ refill only if their tile stayed dry through the previous tide; repeatedly
 flooded land stays stripped. Protected land is a renewable shared resource.
 
 Bank **12 wood + 8 stone** at the storehouse to build the **Lookout**, extending
-warnings and revealing the next two surge forecasts. The haven board tracks
+warnings and revealing the next two surge forecasts. Its cyan tile previews
+assume today's wall layout; damage or new construction can change later risk.
+The haven board tracks
 dry land held, tides weathered, and top builders. There is no permanent win
 or game over; even a battered world can recover.
 
@@ -94,8 +97,7 @@ values must be integer milliseconds, at least `100`.
 Surge holds water for `TIDE_SURGE_MS` (default `8000`), followed by
 `TIDE_RECEDE_MS` (default `5000`) of recession before the next gathering
 countdown starts. Thus default surge-to-surge time is about 103 seconds.
-A saved
-world retains its current tide progress; restart never advances offline time.
+A saved world retains its current tide progress; restart never advances offline time.
 
 Your browser stores a private guest credential for each backend origin.
 Nicknames are labels, not login credentials. Keep browser storage to retain
@@ -104,11 +106,11 @@ per identity is allowed. Do not share credentials or move production saves
 into the public assets directory.
 
 SQLite stores carried materials, resource availability, walls, objectives,
-bank, positions, flood history, and tide progress. Costs and shared awards are transactional.
+bank, positions, flood history, and tide progress. Costs and shared awards
+are transactional.
 Restart with the **same DB_PATH** to keep progress. Offline time never advances
 the tide schedule: tides advance only with an authenticated connection.
-Back up a running
-SQLite database with a SQLite-aware backup tool, or stop the server before
+Back up a running SQLite database with a SQLite-aware backup tool, or stop the server before
 copying the save and its associated files.
 
 ## Verify and package
